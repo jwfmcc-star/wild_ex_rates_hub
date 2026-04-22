@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wild Expeditions · Agent Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --earth:#1a1510;--earth-mid:#2c2318;--earth-light:#3d3025;
+  --sand:#c8a96e;--sand-light:#e2c99a;
+  --muted:#8a7d6a;--muted-light:#b5a990;
+  --green-glow:#5a9e68;--text:#f0e8d8;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--earth);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ── LOGIN ── */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;}
+.login-box{width:100%;max-width:420px;}
+.login-wordmark{text-align:center;margin-bottom:40px;}
+.login-wordmark h1{font-family:'Playfair Display',serif;font-size:26px;font-weight:400;color:var(--sand-light);letter-spacing:0.04em;}
+.login-wordmark .tagline{font-size:11px;letter-spacing:0.26em;text-transform:uppercase;color:var(--muted);margin-top:6px;}
+.login-card{background:var(--earth-mid);border:1px solid rgba(200,169,110,0.18);border-radius:4px;padding:40px;}
+.login-card h2{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;color:var(--sand-light);margin-bottom:6px;}
+.lsub{font-size:13px;color:var(--muted);margin-bottom:28px;font-weight:300;}
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:10px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted-light);margin-bottom:7px;}
+.field input{width:100%;background:var(--earth-light);border:1px solid rgba(200,169,110,0.2);border-radius:2px;padding:12px 15px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color 0.2s;}
+.field input::placeholder{color:var(--muted);}
+.field input:focus{border-color:rgba(200,169,110,0.5);}
+.hint-box{background:rgba(200,169,110,0.05);border:1px solid rgba(200,169,110,0.13);border-radius:2px;padding:12px 15px;margin-top:18px;font-size:11px;color:var(--muted);line-height:1.8;}
+.hint-box strong{color:var(--sand-light);display:block;margin-bottom:3px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;}
+.login-btn{width:100%;background:var(--sand);border:none;border-radius:2px;padding:13px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--earth);cursor:pointer;margin-top:18px;transition:background 0.2s;}
+.login-btn:hover{background:var(--sand-light);}
+.login-err{display:none;margin-top:14px;padding:11px 15px;background:rgba(122,45,45,0.3);border:1px solid rgba(200,100,100,0.3);border-radius:2px;font-size:12px;color:#e8a0a0;}
+.login-footer{text-align:center;margin-top:24px;font-size:11px;color:var(--muted);}
+.login-footer a{color:var(--sand);text-decoration:none;}
+
+/* ── DASHBOARD ── */
+#dashboard{display:none;min-height:100vh;}
+.topbar{background:var(--earth-mid);border-bottom:1px solid rgba(200,169,110,0.12);padding:0 36px;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.topbar-brand{display:flex;align-items:center;gap:13px;}
+.brand-name{font-family:'Playfair Display',serif;font-size:16px;font-weight:400;color:var(--sand-light);}
+.brand-sub{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);}
+.topbar-right{display:flex;align-items:center;gap:14px;}
+.avatar{width:33px;height:33px;border-radius:50%;background:var(--earth-light);border:1px solid rgba(200,169,110,0.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--sand);}
+.agent-name-top{font-size:13px;font-weight:500;color:var(--text);}
+.agent-co-top{font-size:11px;color:var(--muted);}
+.signout-btn{background:none;border:1px solid rgba(200,169,110,0.2);border-radius:2px;padding:6px 14px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted-light);cursor:pointer;transition:all 0.15s;}
+.signout-btn:hover{border-color:var(--sand);color:var(--sand);}
+
+/* ── NAV TABS ── */
+.nav-tabs{background:var(--earth-mid);border-bottom:1px solid rgba(200,169,110,0.1);padding:0 36px;display:flex;gap:0;}
+.nav-tab{padding:13px 20px;font-size:12px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;white-space:nowrap;}
+.nav-tab:hover{color:var(--sand-light);}
+.nav-tab.active{color:var(--sand-light);border-bottom-color:var(--sand);}
+
+/* ── TAB PANELS ── */
+.tab-panel{display:none;padding:32px 36px;max-width:1160px;margin:0 auto;}
+.tab-panel.active{display:block;}
+
+/* ── HERO ── */
+.hero{background:var(--earth-light);border:1px solid rgba(200,169,110,0.15);border-radius:4px;padding:28px 36px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;overflow:hidden;position:relative;}
+.hero::after{content:'';position:absolute;right:-60px;top:-60px;width:240px;height:240px;border-radius:50%;border:1px solid rgba(200,169,110,0.07);}
+.hero-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:400;color:var(--sand-light);line-height:1.2;}
+.hero-title em{font-style:italic;}
+.hero-period{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);margin-top:7px;}
+.comm-big{font-family:'Playfair Display',serif;font-size:52px;font-weight:400;color:var(--sand);line-height:1;}
+.comm-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-top:3px;}
+.tier-bar{margin-top:9px;width:190px;height:3px;background:var(--earth-mid);border-radius:2px;margin-left:auto;}
+.tier-fill{height:100%;border-radius:2px;background:var(--sand);}
+.tier-hint-txt{font-size:11px;color:var(--muted);margin-top:5px;text-align:right;}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:24px;}
+.stat{background:var(--earth-mid);border:1px solid rgba(200,169,110,0.1);border-radius:4px;padding:17px 19px;}
+.stat-lbl{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.stat-num{font-family:'Playfair Display',serif;font-size:24px;font-weight:400;color:var(--sand-light);line-height:1;}
+.stat-note{font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* ── TIER PROGRESS ── */
+.tier-prog{background:var(--earth-mid);border:1px solid rgba(200,169,110,0.1);border-radius:4px;padding:20px 26px;margin-bottom:24px;}
+.tier-prog h3{font-family:'Playfair Display',serif;font-size:16px;font-weight:400;color:var(--sand-light);margin-bottom:4px;}
+.tier-prog-sub{font-size:12px;color:var(--muted);margin-bottom:16px;}
+.prog-track{height:6px;background:var(--earth-light);border-radius:3px;margin-bottom:7px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,#8a6830,var(--sand));border-radius:3px;}
+.prog-marks{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);}
+.tier-next{margin-top:9px;font-size:12px;color:var(--muted-light);}
+.tier-next strong{color:var(--sand);}
+
+/* ── TIER BOXES ── */
+.tier-boxes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;}
+.tier-box{background:var(--earth-mid);border:1px solid rgba(200,169,110,0.1);border-radius:4px;padding:13px 15px;position:relative;}
+.tier-box.active{border-color:rgba(200,169,110,0.45);background:var(--earth-light);}
+.tier-box.active::before{content:'YOUR TIER';position:absolute;top:-1px;right:10px;font-size:8px;font-weight:500;letter-spacing:0.18em;background:var(--sand);color:var(--earth);padding:2px 8px;border-radius:0 0 4px 4px;}
+.tier-pct{font-family:'Playfair Display',serif;font-size:22px;color:var(--sand-light);line-height:1;}
+.tier-rng{font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* ── SECTION HEAD ── */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;}
+.sec-head h3{font-family:'Playfair Display',serif;font-size:18px;font-weight:400;color:var(--sand-light);}
+.count-badge{font-size:11px;background:var(--earth-light);border:1px solid rgba(200,169,110,0.2);border-radius:20px;padding:3px 11px;color:var(--muted-light);}
+
+/* ── BOOKINGS TABLE ── */
+.tbl-wrap{background:var(--earth-mid);border:1px solid rgba(200,169,110,0.1);border-radius:4px;overflow:auto;margin-bottom:28px;}
+.btbl{width:100%;border-collapse:collapse;min-width:860px;}
+.btbl thead th{padding:12px 15px;text-align:left;font-size:10px;font-weight:500;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);background:var(--earth-light);border-bottom:1px solid rgba(200,169,110,0.1);white-space:nowrap;}
+.btbl thead th.r{text-align:right;}
+.btbl tbody tr{border-bottom:1px solid rgba(200,169,110,0.06);transition:background 0.1s;}
+.btbl tbody tr:last-child{border-bottom:none;}
+.btbl tbody tr:hover{background:rgba(200,169,110,0.04);}
+.btbl tbody td{padding:12px 15px;font-size:13px;vertical-align:middle;}
+.btbl tbody td.r{text-align:right;}
+.bref{font-size:11px;font-weight:500;letter-spacing:0.1em;color:var(--sand);}
+.bprop{font-weight:500;color:var(--text);}
+.bcountry{font-size:11px;color:var(--muted);margin-top:2px;}
+.brev{font-weight:500;color:var(--sand-light);}
+.bcomm{color:#7acc8a;font-weight:500;}
+.spill{display:inline-block;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;}
+.s-confirmed{background:rgba(45,74,53,0.5);color:#7acc8a;border:1px solid rgba(90,158,104,0.3);}
+.s-pending{background:rgba(74,60,20,0.5);color:#d4a84b;border:1px solid rgba(200,169,110,0.3);}
+.s-completed{background:rgba(30,40,60,0.5);color:#7aaccc;border:1px solid rgba(100,150,200,0.3);}
+
+/* ── RATES TAB ── */
+.rates-intro{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:24px;}
+.property-card{background:var(--earth-mid);border:1px solid rgba(200,169,110,0.12);border-radius:4px;margin-bottom:20px;overflow:hidden;}
+.property-header{background:var(--earth-light);padding:16px 22px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.property-header:hover{background:rgba(61,48,37,0.8);}
+.ph-left{}
+.ph-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:400;color:var(--sand-light);}
+.ph-loc{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:0.08em;}
+.ph-chevron{color:var(--muted);font-size:14px;transition:transform 0.2s;}
+.ph-chevron.open{transform:rotate(180deg);}
+.property-body{display:none;padding:20px 22px;}
+.property-body.open{display:block;}
+.rates-note{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:16px;padding:10px 14px;background:rgba(200,169,110,0.05);border-left:2px solid rgba(200,169,110,0.25);border-radius:0 2px 2px 0;}
+
+.rtbl{width:100%;border-collapse:collapse;margin-bottom:14px;}
+.rtbl thead th{padding:9px 13px;font-size:10px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);background:var(--earth-light);border-bottom:1px solid rgba(200,169,110,0.1);text-align:left;white-space:nowrap;}
+.rtbl thead th.r{text-align:right;}
+.rtbl tbody tr{border-bottom:1px solid rgba(200,169,110,0.06);}
+.rtbl tbody tr:last-child{border-bottom:none;}
+.rtbl tbody tr:hover{background:rgba(200,169,110,0.03);}
+.rtbl tbody td{padding:10px 13px;font-size:13px;color:var(--text);}
+.rtbl tbody td.r{text-align:right;}
+.rack-val{color:var(--sand-light);font-weight:500;}
+.sto-val{color:#7acc8a;font-weight:500;}
+.comm-val{color:#7aaccc;}
+.period-cell{font-size:12px;color:var(--muted-light);}
+.inc-exc{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
+.inc-box,.exc-box{background:var(--earth-light);border-radius:4px;padding:14px 16px;}
+.inc-box .boxtitle{font-size:10px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:#7acc8a;margin-bottom:10px;}
+.exc-box .boxtitle{font-size:10px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:#e8a06a;margin-bottom:10px;}
+.inc-box ul,.exc-box ul{list-style:none;}
+.inc-box li,.exc-box li{font-size:12px;color:var(--muted-light);padding:2px 0 2px 14px;position:relative;line-height:1.55;}
+.inc-box li::before{content:'+';position:absolute;left:0;color:#7acc8a;font-weight:500;}
+.exc-box li::before{content:'−';position:absolute;left:0;color:#e8a06a;font-weight:500;}
+
+/* ── HISTORY TAB ── */
+.chart-intro{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:24px;}
+.chart-controls{display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap;}
+.chart-controls label{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);}
+.chart-controls select{background:var(--earth-light);border:1px solid rgba(200,169,110,0.2);border-radius:2px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text);outline:none;cursor:pointer;}
+.chart-wrap{background:var(--earth-mid);border:1px solid rgba(200,169,110,0.12);border-radius:4px;padding:24px;margin-bottom:20px;position:relative;}
+.chart-canvas-wrap{position:relative;height:320px;}
+.event-tooltip{display:none;position:absolute;background:var(--earth-light);border:1px solid rgba(200,169,110,0.3);border-radius:4px;padding:12px 16px;max-width:240px;font-size:12px;color:var(--muted-light);line-height:1.6;z-index:50;pointer-events:none;}
+.event-tooltip strong{display:block;color:var(--sand-light);margin-bottom:4px;font-size:13px;}
+.events-timeline{margin-top:8px;}
+.events-timeline h4{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.event-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
+.event-item{background:var(--earth-mid);border:1px solid rgba(200,169,110,0.1);border-radius:4px;padding:11px 14px;}
+.ev-year{font-size:10px;font-weight:500;letter-spacing:0.16em;color:var(--sand);margin-bottom:4px;}
+.ev-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:3px;}
+.ev-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+.ev-icon{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;}
+.ev-down{background:#e24b4b;}
+.ev-up{background:#7acc8a;}
+.ev-neutral{background:var(--sand);}
+
+/* ── FOOTER ── */
+.dash-footer{border-top:1px solid rgba(200,169,110,0.1);padding:18px 36px;display:flex;justify-content:space-between;font-size:11px;color:var(--muted);}
+.dash-footer a{color:var(--sand);text-decoration:none;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.fu{animation:fadeUp 0.35s ease both;}
+.fu2{animation:fadeUp 0.35s 0.07s ease both;}
+.fu3{animation:fadeUp 0.35s 0.14s ease both;}
+.fu4{animation:fadeUp 0.35s 0.21s ease both;}
+
+@media(max-width:700px){
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .tier-boxes{grid-template-columns:repeat(2,1fr);}
+  .topbar,.tab-panel,.dash-footer{padding-left:16px;padding-right:16px;}
+  .nav-tabs{padding:0 10px;}
+  .nav-tab{padding:12px 12px;font-size:11px;}
+  .inc-exc{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════ LOGIN ═══════ -->
+<div id="loginScreen">
+<div class="login-box">
+  <div class="login-wordmark">
+    <svg display="block" style="margin:0 auto 14px;" width="52" height="52" viewBox="0 0 54 54" fill="none">
+      <circle cx="27" cy="27" r="25" stroke="#c8a96e" stroke-width="0.8" fill="none"/>
+      <path d="M27 8C20 8 14 14 14 22C14 30 20 38 27 46C34 38 40 30 40 22C40 14 34 8 27 8Z" stroke="#c8a96e" stroke-width="1" fill="none"/>
+      <circle cx="27" cy="22" r="3.5" fill="#c8a96e" opacity="0.75"/>
+      <line x1="27" y1="25" x2="27" y2="38" stroke="#c8a96e" stroke-width="0.7" opacity="0.35"/>
+    </svg>
+    <h1>Wild Expeditions</h1>
+    <div class="tagline">Zimbabwe · Botswana · Ethiopia · Madagascar · Tanzania</div>
+  </div>
+  <div class="login-card">
+    <h2>Agent portal</h2>
+    <p class="lsub">Sign in to access your bookings, rates and commission statement</p>
+    <div class="field"><label>Your name</label><input type="text" id="loginName" placeholder="e.g. Sarah Mitchell" autocomplete="off"></div>
+    <div class="field"><label>Access code</label><input type="password" id="loginCode" placeholder="••••••••"></div>
+    <div class="hint-box">
+      <strong>Demo agents</strong>
+      Sarah Mitchell / LJ2025 &nbsp;·&nbsp; James van der Berg / HSC2025 &nbsp;·&nbsp;
+      Amara Diallo / TNE2025 &nbsp;·&nbsp; Oliver Pemberton / MWT2025 &nbsp;·&nbsp;
+      Priya Sharma / STG2025 &nbsp;·&nbsp; Marco Ferretti / SR2025 &nbsp;·&nbsp;
+      Lena Hoffmann / WH2025 &nbsp;·&nbsp; David Nakamura / BHA2025 &nbsp;·&nbsp;
+      Fatima Al-Hassan / DDT2025 &nbsp;·&nbsp; Tom Ellery / BCJ2025
+    </div>
+    <button class="login-btn" onclick="doLogin()">Enter portal</button>
+    <div class="login-err" id="loginErr">Unrecognised credentials. Please check your name and code, or contact Wild Expeditions.</div>
+  </div>
+  <div class="login-footer"><a href="https://www.wild-expeditions.africa" target="_blank">wild-expeditions.africa</a> &nbsp;·&nbsp; Confidential · STO use only</div>
+</div>
+</div>
+
+<!-- ═══════ DASHBOARD ═══════ -->
+<div id="dashboard">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <svg width="27" height="27" viewBox="0 0 54 54" fill="none"><circle cx="27" cy="27" r="25" stroke="#c8a96e" stroke-width="0.8" fill="none"/><path d="M27 8C20 8 14 14 14 22C14 30 20 38 27 46C34 38 40 30 40 22C40 14 34 8 27 8Z" stroke="#c8a96e" stroke-width="1" fill="none"/><circle cx="27" cy="22" r="3.5" fill="#c8a96e" opacity="0.75"/></svg>
+      <div><div class="brand-name">Wild Expeditions</div><div class="brand-sub">Agent portal</div></div>
+    </div>
+    <div class="topbar-right">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="avatar" id="avatarEl"></div>
+        <div><div class="agent-name-top" id="topName"></div><div class="agent-co-top" id="topCo"></div></div>
+      </div>
+      <button class="signout-btn" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+
+  <!-- Nav tabs -->
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="showTab('overview')">Overview</div>
+    <div class="nav-tab" onclick="showTab('bookings')">My bookings</div>
+    <div class="nav-tab" onclick="showTab('rates')">Rates &amp; commissions</div>
+    <div class="nav-tab" onclick="showTab('history')">Rate history</div>
+  </div>
+
+  <!-- ── TAB: OVERVIEW ── -->
+  <div class="tab-panel active" id="tab-overview">
+    <div class="hero fu">
+      <div>
+        <div class="hero-title">Welcome back, <em id="heroFirst"></em></div>
+        <div class="hero-period">2024–2025 booking season · All figures in USD</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="comm-big" id="commPct"></div>
+        <div class="comm-label">Commission tier</div>
+        <div class="tier-bar"><div class="tier-fill" id="tierFill"></div></div>
+        <div class="tier-hint-txt" id="tierHintTxt"></div>
+      </div>
+    </div>
+    <div class="stats fu2">
+      <div class="stat"><div class="stat-lbl">Total bookings</div><div class="stat-num" id="sB"></div><div class="stat-note">This season</div></div>
+      <div class="stat"><div class="stat-lbl">Revenue generated</div><div class="stat-num" id="sR"></div><div class="stat-note">Gross lodge value</div></div>
+      <div class="stat"><div class="stat-lbl">Total pax</div><div class="stat-num" id="sP"></div><div class="stat-note">Guests booked</div></div>
+      <div class="stat"><div class="stat-lbl">Commission earned</div><div class="stat-num" id="sC" style="color:#7acc8a;"></div><div class="stat-note">At current tier</div></div>
+    </div>
+    <div class="tier-prog fu2">
+      <h3>Progress to next tier</h3>
+      <p class="tier-prog-sub">Your tier is determined by total gross revenue generated this season.</p>
+      <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+      <div class="prog-marks"><span>$0</span><span>$50k</span><span>$100k</span><span>$150k</span><span>$200k</span></div>
+      <div class="tier-next" id="tierNext"></div>
+    </div>
+    <div class="sec-head fu3"><h3>Commission tiers</h3></div>
+    <div class="tier-boxes fu3" id="tierBoxes"></div>
+  </div>
+
+  <!-- ── TAB: BOOKINGS ── -->
+  <div class="tab-panel" id="tab-bookings">
+    <div class="sec-head fu"><h3>Your bookings</h3><span class="count-badge" id="bCount"></span></div>
+    <div class="tbl-wrap fu2">
+      <table class="btbl">
+        <thead><tr>
+          <th>Ref</th><th>Property</th><th>Check-in</th><th>Guest</th>
+          <th class="r">Nights</th><th class="r">Pax</th><th class="r">Rack PPPN</th>
+          <th class="r">Gross value</th><th class="r">Your commission</th><th>Status</th>
+        </tr></thead>
+        <tbody id="bTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── TAB: RATES ── -->
+  <div class="tab-panel" id="tab-rates">
+    <p class="rates-intro fu">
+      All recommended selling prices for 2027. Your STO rate is the rack price minus your commission percentage —
+      that margin is yours to retain. Rates shown are per person per night sharing unless otherwise noted.
+      <span id="ratesCommNote" style="color:#7acc8a;font-weight:500;"></span>
+    </p>
+    <div id="propertyCards"></div>
+  </div>
+
+  <!-- ── TAB: HISTORY ── -->
+  <div class="tab-panel" id="tab-history">
+    <p class="chart-intro fu">
+      Rate evolution across Wild Expeditions properties from 2015 to 2027. Hover over any year marker to see
+      what was driving prices up or down — from global disruptions like Covid to post-pandemic recovery and
+      new property openings.
+    </p>
+    <div class="chart-controls fu">
+      <label>Property</label>
+      <select id="histProp" onchange="renderChart()">
+        <option value="camp_hwange">Camp Hwange</option>
+        <option value="muddy_teak">Muddy Teak</option>
+        <option value="karangoma">Karangoma</option>
+        <option value="masoala">Masoala Forest Lodge</option>
+        <option value="lales">Lale's Camp</option>
+        <option value="danakil">Expedition Danakil</option>
+      </select>
+      <label style="margin-left:8px;">Season</label>
+      <select id="histSeason" onchange="renderChart()">
+        <option value="peak">Peak season</option>
+        <option value="shoulder">Shoulder season</option>
+        <option value="low">Low season</option>
+      </select>
+    </div>
+    <div class="chart-wrap fu2">
+      <div class="chart-canvas-wrap"><canvas id="histChart"></canvas></div>
+      <div class="event-tooltip" id="evTooltip"></div>
+    </div>
+    <div class="events-timeline fu3">
+      <h4>Key events &amp; rate drivers</h4>
+      <div class="event-items" id="eventItems"></div>
+    </div>
+  </div>
+
+  <div class="dash-footer">
+    <span>© 2025 Wild Expeditions &nbsp;·&nbsp; <a href="https://www.wild-expeditions.africa" target="_blank">wild-expeditions.africa</a></span>
+    <span>Confidential · STO use only · E&amp;OE</span>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  CORE DATA
+// ═══════════════════════════════════════
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const SURNAMES=['Harrington','Visser','Delacroix','Osei','Tanaka','Müller','Al-Rashid','Petrov','Nkosi','Lim'];
+const STATUSES=['confirmed','confirmed','confirmed','pending','completed','completed'];
+const TIERS=[
+  {min:200000,disc:30,range:'$200k +'},
+  {min:150000,disc:25,range:'$150k – $200k'},
+  {min:100000,disc:20,range:'$100k – $150k'},
+  {min:0,     disc:15,range:'Under $100k'},
+];
+function getTier(r){for(const t of TIERS){if(r>=t.min)return t;}return TIERS[TIERS.length-1];}
+
+// Real 2027 rack rates (peak PPPN, USD) from PDF
+const PROPS=[
+  {name:'Camp Hwange',         country:'Zimbabwe',   flag:'🇿🇼', pppn:1175},
+  {name:'Muddy Teak',          country:'Zimbabwe',   flag:'🇿🇼', pppn:1300},
+  {name:'Karangoma',           country:'Botswana',   flag:'🇧🇼', pppn:1420},
+  {name:'Masoala Forest Lodge',country:'Madagascar', flag:'🇲🇬', pppn:1000},
+  {name:"Lale's Camp",         country:'Ethiopia',   flag:'🇪🇹', pppn:1290},
+  {name:'Expedition Danakil',  country:'Ethiopia',   flag:'🇪🇹', pppn:1018},
+  {name:'Expedition Eth. Wolf',country:'Ethiopia',   flag:'🇪🇹', pppn:875},
+  {name:'Expedition Blue Lagoon',country:'Madagascar',flag:'🇲🇬',pppn:1100},
+  {name:'Camp Hwange',         country:'Zimbabwe',   flag:'🇿🇼', pppn:1175},
+  {name:'Karangoma',           country:'Botswana',   flag:'🇧🇼', pppn:1420},
+  {name:'Muddy Teak',          country:'Zimbabwe',   flag:'🇿🇼', pppn:1300},
+  {name:"Lale's Camp",         country:'Ethiopia',   flag:'🇪🇹', pppn:950},
+];
+
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function usd(n){return '$'+Math.round(n).toLocaleString('en-US');}
+function initials(n){return n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();}
+function norm(s){return s.trim().toLowerCase();}
+
+function makeBookings(targetRev,seed){
+  const b=[];let total=0,idx=seed%PROPS.length,ref=1000+seed*17;
+  while(total<targetRev*0.88){
+    const p=PROPS[idx%PROPS.length];
+    const pax=rnd(2,6),nights=rnd(3,9);
+    const gross=pax*nights*p.pppn;
+    const yr=total<targetRev*0.5?2024:2025;
+    const m=rnd(0,11),d=rnd(1,27);
+    b.push({ref:'WE-'+(ref+b.length),prop:p.name,country:p.country,flag:p.flag,pppn:p.pppn,
+      date:`${String(d).padStart(2,'0')} ${MONTHS[m]} ${yr}`,pax,nights,gross,
+      status:STATUSES[(b.length+seed)%STATUSES.length],
+      guest:SURNAMES[(b.length+seed)%SURNAMES.length]});
+    total+=gross;idx++;
+  }
+  return b;
+}
+
+const AGENTS=[
+  {name:'Sarah Mitchell',    company:'Latitude Journeys',        code:'LJ2025',  rev:200000},
+  {name:'James van der Berg',company:'Horizon Safari Co.',       code:'HSC2025', rev:182000},
+  {name:'Amara Diallo',      company:'Terra Nova Expeditions',   code:'TNE2025', rev:158000},
+  {name:'Oliver Pemberton',  company:'Meridian Wildlife Travel', code:'MWT2025', rev:134000},
+  {name:'Priya Sharma',      company:'Sunbird Travel Group',     code:'STG2025', rev:112000},
+  {name:'Marco Ferretti',    company:'Savanna Routes',           code:'SR2025',  rev:91000},
+  {name:'Lena Hoffmann',     company:'Wildtrack Holidays',       code:'WH2025',  rev:76000},
+  {name:'David Nakamura',    company:'Blue Horizon Adventures',  code:'BHA2025', rev:61000},
+  {name:'Fatima Al-Hassan',  company:'Desert & Delta Travel',    code:'DDT2025', rev:43000},
+  {name:'Tom Ellery',        company:'Basecamp Journeys',        code:'BCJ2025', rev:24000},
+].map((a,i)=>{
+  a.bookings=makeBookings(a.rev,i*7+3);
+  a.totalRev=a.bookings.reduce((s,b)=>s+b.gross,0);
+  a.tier=getTier(a.totalRev);
+  a.comm=a.totalRev*a.tier.disc/100;
+  a.totalPax=a.bookings.reduce((s,b)=>s+b.pax,0);
+  return a;
+});
+
+// ═══════════════════════════════════════
+//  REAL RATES DATA (from PDFs)
+// ═══════════════════════════════════════
+const RATE_CARDS = [
+  {
+    id:'camp_hwange', name:'Camp Hwange', loc:'Hwange National Park, Zimbabwe', flag:'🇿🇼',
+    currency:'USD',
+    seasons:[
+      {period:'1 Jan – 31 Mar 2027', rack:620, supplement:0, note:'No single supplement'},
+      {period:'1 Apr – 30 Jun 2027', rack:790, supplement:240},
+      {period:'1 Jul – 31 Oct 2027', rack:1175, supplement:355, note:'Peak season'},
+      {period:'1 Nov 2027 – 31 Mar 2028', rack:645, supplement:0, note:'No single supplement'},
+    ],
+    extras:[
+      {item:'Zimparks park fees', price:'$24 pppn', comm:false},
+      {item:'Community & conservation fee', price:'$10 pppn', comm:false},
+      {item:'Private 4×4 vehicle & guide', price:'$630 per vehicle/night', comm:false},
+    ],
+    included:['VAT','All shared scheduled activities','All beverages','All meals','Laundry','Emergency evacuation to Victoria Falls','Road transfers: Shumba airstrip ↔ Camp Hwange'],
+    excluded:['Air transfers not specified','Community & conservation fees','Park fees','Gratuities','Privately guided activities','Personal medical insurance'],
+    notes:'Minimum age 8 years. Children under 16: 50% of adult rate. Minimum walking age 12 yrs. Families with children under 12 must take private vehicle. Year-round operation.',
+  },
+  {
+    id:'muddy_teak', name:'Muddy Teak', loc:'Hwange National Park, Zimbabwe', flag:'🇿🇼',
+    currency:'USD',
+    seasons:[
+      {period:'1 May – 30 Jun 2027', rack:905, supplement:0, note:'No single supplement'},
+      {period:'1 Jul – 31 Oct 2027', rack:1300, supplement:0, note:'Peak · No single supplement'},
+      {period:'1 Nov 2027', rack:740, supplement:0, note:'No single supplement'},
+    ],
+    extras:[
+      {item:'Zimparks conservation fees', price:'$24 pppn', comm:false},
+      {item:'Conservation & community fee', price:'$10 pppn', comm:false},
+      {item:'Additional private 4×4 & guide', price:'$600 per vehicle/night', comm:false},
+    ],
+    included:['Private activities & camp guide','Game drives (day & night)','Guided walks & logpile hides','VAT','All beverages','All meals','Laundry','Emergency evacuation to Victoria Falls','Road transfers: Muddy Teak ↔ Shumba Airstrip'],
+    excluded:['Air transfers not specified','Zimparks fees','Community fees','Gratuities','Personal medical insurance'],
+    notes:'Seasonal camp: open 1 May – 30 Nov. Exclusive use, minimum 4 full-paying guests. No single supplement. Minimum 3-night stay. Minimum age 8 years.',
+  },
+  {
+    id:'karangoma', name:'Karangoma', loc:'Northern Okavango Delta, Botswana', flag:'🇧🇼',
+    currency:'USD',
+    seasons:[
+      {period:'1 Jan – 30 Apr 2027', rack:780, supplement:0, note:'No single supplement'},
+      {period:'1 May – 30 Jun 2027', rack:1115, supplement:335},
+      {period:'1 Jul – 31 Oct 2027', rack:1420, supplement:425, note:'Peak season'},
+      {period:'1 Nov – 30 Nov 2027', rack:1115, supplement:335},
+      {period:'1 Dec 2027 – 31 Mar 2028', rack:820, supplement:0, note:'No single supplement'},
+    ],
+    extras:[
+      {item:'Community & conservation fee', price:'$50 pppn', comm:false},
+      {item:'Private 4×4 vehicle & guide', price:'$600 per vehicle/night', comm:false},
+    ],
+    included:['VAT','Twice-daily camp activities (shared)','All local beverages','All meals','Limited WiFi','Laundry','Emergency evacuation to Maun','Day & night game drives','Mokoro (seasonal)','Boating (seasonal)','Guided walks','Stargazing'],
+    excluded:['Access transfers to/from camp','Community & conservation fee','Gratuities','Privately guided activities','Imported drinks','Personal medical insurance'],
+    notes:'Year-round operation. Minimum 2-night stay. Minimum age 8 years. Children under 16: 50% of adult rate. Families with children under 12 must take private vehicle.',
+  },
+  {
+    id:'masoala', name:'Masoala Forest Lodge', loc:'Masoala National Park, Madagascar', flag:'🇲🇬',
+    currency:'EUR',
+    seasons:[
+      {period:'25 Apr – 31 Aug 2027 & 1 Dec 2027 – 9 Jan 2028', rack:2130, supplement:null, note:'3-night pkg pp sharing'},
+      {period:'1 Sep – 30 Nov 2027', rack:2325, supplement:null, note:'3-night pkg pp sharing (high season)'},
+    ],
+    extras:[
+      {item:'Scheduled flight (one way, Tana ↔ Maroantsetra)', price:'€680 pp', comm:false},
+    ],
+    included:['VAT','Boat transfers Maroantsetra ↔ lodge','Scheduled shared activities','All non-alcoholic beverages & MFL rums','All meals','Laundry','Emergency boat transfer to Maroantsetra'],
+    excluded:['Air transfers Antananarivo ↔ Maroantsetra','Gratuities','Massages','Motorised boating not in itinerary','High-speed WiFi','Personal medical insurance','Emergency evacuation to Antananarivo'],
+    notes:'Package rates: 3, 4, 7, 10 and 11-night options. Stay-7/Pay-6 and other offers available. Departures Sundays & Wednesdays only. Closed early Jan – mid April annually. Children under 16: 50% adult rate.',
+  },
+  {
+    id:'lales', name:"Lale's Camp", loc:'Lower Omo Valley, Ethiopia', flag:'🇪🇹',
+    currency:'USD',
+    seasons:[
+      {period:'Year-round (excl. April)', rack:1290, supplement:null, note:'2 pax rate pppn'},
+      {period:'Year-round (excl. April)', rack:1140, supplement:null, note:'3 pax rate pppn'},
+      {period:'Year-round (excl. April)', rack:950,  supplement:null, note:'4 pax rate pppn'},
+      {period:'Year-round (excl. April)', rack:890,  supplement:null, note:'5 pax rate pppn'},
+      {period:'Year-round (excl. April)', rack:820,  supplement:null, note:'6 pax rate pppn'},
+      {period:'Year-round (excl. April)', rack:760,  supplement:null, note:'7–12 pax rate pppn'},
+    ],
+    extras:[],
+    included:['VAT','Road transfers: camp ↔ Jinka or Murulle airstrip','Community & park fees','All activities','All beverages','All meals'],
+    excluded:['Gratuities','Laundry','Personal medical insurance','Emergency evacuation to Addis Ababa'],
+    notes:'Exclusive use only, minimum 2 pax, minimum 3 nights. Closed April. Children under 12: 50% of adult rate. No single supplement.',
+  },
+  {
+    id:'danakil', name:'Expedition Danakil', loc:'Danakil Depression, Ethiopia', flag:'🇪🇹',
+    currency:'USD',
+    seasons:[
+      {period:'Year-round (excl. May–Aug)', rack:1018, supplement:null, note:'Indicative 4-pax rate pppn'},
+    ],
+    extras:[],
+    included:['VAT','Road transfers: Semera & Mekele airports','Community & park fees','Private 4×4 & guide','All activities','All beverages','All meals','Emergency road evacuation'],
+    excluded:['Air transfers to Semera/Mekele','Gratuities','Laundry','Personal medical insurance','Emergency evacuation to Addis Ababa'],
+    notes:'Exclusive use, minimum 2 pax. Minimum 3 nights. Not operated May–Aug (extreme heat). Children under 12: 50% adult rate.',
+  },
+];
+
+// ═══════════════════════════════════════
+//  HISTORICAL RATE DATA (2015–2027)
+// ═══════════════════════════════════════
+const HIST_EVENTS = [
+  {year:2015, type:'neutral', title:'Portfolio launch', desc:'Wild Expeditions founded with Camp Hwange and Karangoma as flagship properties.'},
+  {year:2016, type:'up',      title:'Strong demand', desc:'Southern Africa safari boom drives first major rate increase across all properties.'},
+  {year:2017, type:'up',      title:'Lale\'s Camp opens', desc:'Ethiopia expansion opens new market segment; healthy occupancy drives 8% increase.'},
+  {year:2018, type:'up',      title:'Masoala opens', desc:'Madagascar property opens; premium pricing established. Botswana pula stabilisation allows Karangoma rate increase.'},
+  {year:2019, type:'up',      title:'Record year', desc:'Record advance bookings across the portfolio; rates increase 10–12% in response to high demand and rising operating costs.'},
+  {year:2020, type:'down',    title:'Covid-19 collapse', desc:'Global travel comes to a standstill. Properties closed for most of the year. Rates slashed dramatically to retain agent relationships and generate any revenue on limited reopening.'},
+  {year:2021, type:'down',    title:'Partial reopening', desc:'Selective markets reopen (Southern Africa leads). Rates remain below 2019 levels to stimulate recovery. Occupancy slowly rebuilds from Q3.'},
+  {year:2022, type:'up',      title:'Post-Covid surge', desc:'Pent-up demand explodes globally. Occupancy jumps to record highs. Rates increase sharply — both to recover lost revenue and manage demand against limited capacity.'},
+  {year:2023, type:'up',      title:'Muddy Teak opens', desc:'New premium Zimbabwe camp opens at higher price point. Portfolio-wide rates increase 12–15% as costs (fuel, staff, food) continue rising post-Covid.'},
+  {year:2024, type:'up',      title:'Continued growth', desc:'Strong global safari market. USD remains robust. Operational cost pressures continue. Rates adjusted upward 8–10%.'},
+  {year:2025, type:'neutral', title:'Market stabilisation', desc:'Rate growth moderates. Competitive landscape intensifies. Focus shifts to value and experience differentiation.'},
+  {year:2026, type:'up',      title:'2026 rates published', desc:'Moderate increases across the board reflecting continued cost pressures and strong forward booking pace.'},
+  {year:2027, type:'up',      title:'2027 rates published', desc:'Further incremental increases. Camp Hwange peak reaches $1,175; Karangoma peak $1,420; Muddy Teak peak $1,300.'},
+];
+
+// Peak season rates by property across years (estimated historical + real 2026/2027 from PDFs)
+const HIST_RATES = {
+  camp_hwange: {
+    peak:     [480,520,560,600,660, 320,390,750,920,1040,1080,1130,1175],
+    shoulder: [350,370,400,430,480, 240,290,540,670, 760, 790, 760, 790],
+    low:      [260,280,300,320,360, 180,220,400,500, 560, 590, 570, 620],
+  },
+  muddy_teak: {
+    peak:     [  0,  0,  0,  0,  0,   0,  0,  0,870,980,1050,1250,1300],
+    shoulder: [  0,  0,  0,  0,  0,   0,  0,  0,620,710, 760, 870, 905],
+    low:      [  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,   0,   0,   0],
+  },
+  karangoma: {
+    peak:     [640,690,740,790,870, 420,510,900,1100,1240,1290,1350,1420],
+    shoulder: [460,495,530,565,620, 300,370,660, 810, 920, 960,1058,1115],
+    low:      [320,345,370,395,430, 200,250,460, 570, 640, 670, 690, 780],
+  },
+  masoala: {
+    peak:     [  0,  0,1100,1180,1320, 600,760,1400,1700,1900,1960,2067,2130],
+    shoulder: [  0,  0, 820, 880, 980, 450,570,1050,1280,1430,1470,1552,1600],
+    low:      [  0,  0, 600, 640, 720, 320,400, 760, 920,1040,1080,1130,1160],
+  },
+  lales: {
+    peak:     [  0,720,780,840,920, 440,540,1000,1200,1260,1280,1290,1290],
+    shoulder: [  0,600,650,700,760, 360,440, 820, 980,1040,1050,1050,1050],
+    low:      [  0,500,540,580,640, 300,360, 680, 820, 860, 870, 870, 870],
+  },
+  danakil: {
+    peak:     [  0,  0,780,840,920, 440,530,960,1018,1018,1018,1018,1018],
+    shoulder: [  0,  0,620,670,730, 350,420,760, 808, 808, 808, 808, 808],
+    low:      [  0,  0,500,540,580, 280,340,610, 650, 650, 650, 650, 650],
+  },
+};
+
+const YEARS=[2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026,2027];
+let chartInstance=null;
+
+// ═══════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════
+function showTab(id){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  const tabs=['overview','bookings','rates','history'];
+  document.querySelectorAll('.nav-tab')[tabs.indexOf(id)].classList.add('active');
+  if(id==='history') setTimeout(renderChart, 80);
+}
+
+// ═══════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════
+function findAgent(n,c){return AGENTS.find(a=>norm(a.name)===norm(n)&&norm(a.code)===norm(c))||null;}
+
+function doLogin(){
+  const n=document.getElementById('loginName').value;
+  const c=document.getElementById('loginCode').value;
+  const err=document.getElementById('loginErr');
+  const agent=findAgent(n,c);
+  if(!agent){err.style.display='block';return;}
+  err.style.display='none';
+  renderDash(agent);
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+  window.scrollTo(0,0);
+}
+function doLogout(){
+  document.getElementById('loginName').value='';
+  document.getElementById('loginCode').value='';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('dashboard').style.display='none';
+  showTab('overview');
+}
+document.getElementById('loginCode').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('loginName').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginCode').focus();});
+
+// ═══════════════════════════════════════
+//  RENDER DASHBOARD
+// ═══════════════════════════════════════
+function renderDash(a){
+  const disc=a.tier.disc, rev=a.totalRev;
+  document.getElementById('avatarEl').textContent=initials(a.name);
+  document.getElementById('topName').textContent=a.name;
+  document.getElementById('topCo').textContent=a.company;
+  document.getElementById('heroFirst').textContent=a.name.split(' ')[0];
+  document.getElementById('commPct').textContent=disc+'%';
+  document.getElementById('tierFill').style.width=Math.round(Math.min(rev/200000,1)*100)+'%';
+  document.getElementById('tierHintTxt').textContent=a.tier.range;
+  document.getElementById('sB').textContent=a.bookings.length;
+  document.getElementById('sR').textContent=usd(rev);
+  document.getElementById('sP').textContent=a.totalPax;
+  document.getElementById('sC').textContent=usd(a.comm);
+  document.getElementById('progFill').style.width=Math.round(Math.min(rev/200000,1)*100)+'%';
+
+  const ni=TIERS.findIndex(t=>t.disc===disc)-1;
+  document.getElementById('tierNext').innerHTML = ni>=0
+    ? `<strong>${usd(TIERS[ni].min-rev)}</strong> more revenue to reach the <strong>${TIERS[ni].disc}%</strong> commission tier.`
+    : `You're at the <strong>top tier (30%)</strong> — outstanding performance!`;
+
+  document.getElementById('tierBoxes').innerHTML=TIERS.map(t=>`
+    <div class="tier-box ${t.disc===disc?'active':''}">
+      <div class="tier-pct">${t.disc}%</div>
+      <div class="tier-rng">${t.range}</div>
+    </div>`).join('');
+
+  document.getElementById('bCount').textContent=a.bookings.length+' bookings';
+  document.getElementById('bTbody').innerHTML=a.bookings.map(b=>{
+    const comm=b.gross*disc/100;
+    return `<tr>
+      <td><span class="bref">${b.ref}</span></td>
+      <td><div class="bprop">${b.prop}</div><div class="bcountry">${b.flag} ${b.country}</div></td>
+      <td style="font-size:12px;color:var(--muted-light);">${b.date}</td>
+      <td style="font-size:12px;color:var(--muted-light);">${b.guest} party</td>
+      <td class="r" style="color:var(--muted-light);">${b.nights}</td>
+      <td class="r" style="color:var(--muted-light);">${b.pax}</td>
+      <td class="r" style="font-size:12px;color:var(--muted);">${usd(b.pppn)}</td>
+      <td class="r brev">${usd(b.gross)}</td>
+      <td class="r bcomm">${usd(comm)}</td>
+      <td><span class="spill s-${b.status}">${b.status}</span></td>
+    </tr>`;
+  }).join('');
+
+  // Rates tab
+  document.getElementById('ratesCommNote').textContent =
+    ` At your current ${disc}% STO commission, your net cost is rack minus ${disc}%.`;
+  document.getElementById('propertyCards').innerHTML = RATE_CARDS.map(card=>`
+    <div class="property-card">
+      <div class="property-header" onclick="toggleCard('${card.id}')">
+        <div class="ph-left">
+          <div class="ph-name">${card.flag} ${card.name}</div>
+          <div class="ph-loc">${card.loc}</div>
+        </div>
+        <div class="ph-chevron" id="chev-${card.id}">▼</div>
+      </div>
+      <div class="property-body" id="body-${card.id}">
+        ${card.notes?`<div class="rates-note">${card.notes}</div>`:''}
+        <table class="rtbl">
+          <thead><tr>
+            <th>Season / Period</th>
+            <th class="r">Rack (${card.currency}) PPPN</th>
+            <th class="r">Your STO rate (${disc}% off)</th>
+            <th class="r">Commission earned</th>
+            ${card.seasons[0].supplement!==null?'<th class="r">Single supplement</th>':''}
+            <th>Notes</th>
+          </tr></thead>
+          <tbody>
+            ${card.seasons.map(s=>{
+              const stoRate = Math.round(s.rack*(1-disc/100));
+              const commAmt = Math.round(s.rack*disc/100);
+              const suppCol = s.supplement!==null ? `<td class="r" style="color:var(--muted-light);">${s.supplement===0?'None':s.currency+' '+s.supplement}</td>` : '';
+              return `<tr>
+                <td class="period-cell">${s.period}</td>
+                <td class="r rack-val">${card.currency} ${s.rack.toLocaleString()}</td>
+                <td class="r sto-val">${card.currency} ${stoRate.toLocaleString()}</td>
+                <td class="r comm-val">${card.currency} ${commAmt.toLocaleString()}</td>
+                ${card.seasons[0].supplement!==null?suppCol:''}
+                <td style="font-size:11px;color:var(--muted);">${s.note||''}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        ${card.extras.length?`
+        <table class="rtbl" style="margin-top:14px;">
+          <thead><tr><th>Additional charge</th><th class="r">Price</th><th>Commissionable</th></tr></thead>
+          <tbody>${card.extras.map(e=>`<tr>
+            <td>${e.item}</td>
+            <td class="r" style="color:var(--muted-light);">${e.price}</td>
+            <td><span class="spill" style="background:rgba(122,45,45,0.4);color:#e8a0a0;border:1px solid rgba(200,100,100,0.3);">Non-comm</span></td>
+          </tr>`).join('')}</tbody>
+        </table>`:''}
+        <div class="inc-exc">
+          <div class="inc-box">
+            <div class="boxtitle">Included</div>
+            <ul>${card.included.map(i=>`<li>${i}</li>`).join('')}</ul>
+          </div>
+          <div class="exc-box">
+            <div class="boxtitle">Excluded</div>
+            <ul>${card.excluded.map(i=>`<li>${i}</li>`).join('')}</ul>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  // Store agent disc for chart use
+  window._agentDisc = disc;
+}
+
+function toggleCard(id){
+  const body=document.getElementById('body-'+id);
+  const chev=document.getElementById('chev-'+id);
+  const open=body.classList.toggle('open');
+  chev.classList.toggle('open',open);
+}
+
+// ═══════════════════════════════════════
+//  HISTORICAL CHART
+// ═══════════════════════════════════════
+function renderChart(){
+  const propKey = document.getElementById('histProp').value;
+  const seasonKey = document.getElementById('histSeason').value;
+  const disc = window._agentDisc || 15;
+  const rackData = HIST_RATES[propKey][seasonKey];
+  const stoData = rackData.map(v => v>0 ? Math.round(v*(1-disc/100)) : null);
+
+  // Null out zeros
+  const rackClean = rackData.map(v=>v>0?v:null);
+
+  const ctx = document.getElementById('histChart').getContext('2d');
+  if(chartInstance) chartInstance.destroy();
+
+  // Event markers
+  const eventByYear = {};
+  HIST_EVENTS.forEach(e=>{ eventByYear[e.year]=e; });
+
+  const pointColors = YEARS.map(yr=>{
+    const ev = eventByYear[yr];
+    if(!ev) return 'rgba(200,169,110,0.6)';
+    if(ev.type==='down') return '#e24b4b';
+    if(ev.type==='up') return '#7acc8a';
+    return '#c8a96e';
+  });
+  const pointRadii = YEARS.map(yr => eventByYear[yr] ? 8 : 4);
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: YEARS.map(String),
+      datasets: [
+        {
+          label: 'Rack rate',
+          data: rackClean,
+          borderColor: '#c8a96e',
+          backgroundColor: 'rgba(200,169,110,0.08)',
+          borderWidth: 2,
+          pointBackgroundColor: pointColors,
+          pointRadius: pointRadii,
+          pointHoverRadius: 10,
+          tension: 0.35,
+          fill: true,
+          spanGaps: true,
+        },
+        {
+          label: `Your STO rate (${disc}% off)`,
+          data: stoData,
+          borderColor: '#7acc8a',
+          backgroundColor: 'rgba(122,204,138,0.05)',
+          borderWidth: 1.5,
+          pointBackgroundColor: '#7acc8a',
+          pointRadius: 3,
+          pointHoverRadius: 6,
+          tension: 0.35,
+          fill: false,
+          borderDash: [4,3],
+          spanGaps: true,
+        },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: { color: '#b5a990', font: { family: "'DM Sans',sans-serif", size: 12 }, boxWidth: 20, padding: 20 }
+        },
+        tooltip: {
+          backgroundColor: '#3d3025',
+          borderColor: 'rgba(200,169,110,0.3)',
+          borderWidth: 1,
+          titleColor: '#e2c99a',
+          bodyColor: '#b5a990',
+          padding: 12,
+          callbacks: {
+            afterBody: function(items){
+              const yr = parseInt(items[0].label);
+              const ev = eventByYear[yr];
+              if(ev) return ['\n'+ev.title+': '+ev.desc];
+              return [];
+            },
+            label: function(item){
+              if(item.raw===null) return item.dataset.label+': not yet operating';
+              return item.dataset.label+': $'+item.raw.toLocaleString()+' pppn';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#8a7d6a', font: { family: "'DM Sans',sans-serif", size: 11 } },
+          grid: { color: 'rgba(200,169,110,0.07)' },
+        },
+        y: {
+          ticks: { color: '#8a7d6a', font: { family: "'DM Sans',sans-serif", size: 11 },
+            callback: v => '$'+v.toLocaleString() },
+          grid: { color: 'rgba(200,169,110,0.07)' },
+        }
+      }
+    }
+  });
+
+  // Event list
+  document.getElementById('eventItems').innerHTML = HIST_EVENTS.map(e=>`
+    <div class="event-item">
+      <div class="ev-year"><span class="ev-icon ev-${e.type}"></span>${e.year}</div>
+      <div class="ev-title">${e.title}</div>
+      <div class="ev-desc">${e.desc}</div>
+    </div>`).join('');
+}
+</script>
+</body>
+</html>
